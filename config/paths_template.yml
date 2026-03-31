@@ -1,0 +1,8 @@
+# Copy this file to a local config file and edit the paths for your machine.
+
+data_dir: ./data
+output_dir: ./output
+mimic_input_file: ./data/mimic_iv_sepsis3_apache3_with_vitals.csv.gz
+eicu_input_file: ./data/eicu_sepsis3_apache3_with_vitals.csv.gz
+manuscript_output_dir: ./output/outputs_for_manuscript
+intermediate_output_dir: ./output/outputs_data

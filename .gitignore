@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Jupyter and local environments
+.venv/
+venv/
+env/
+.env
+
+# R and Quarto
+.Rhistory
+.RData
+.Rproj.user/
+.quarto/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+
+# Local data and generated outputs
+data/*
+!data/.gitkeep
+output/*
+!output/.gitkeep
+
+# Binary and cache artifacts
+*.log
+*.tmp
+*.bak
+*.pkl
+*.pickle
+*.feather
+*.parquet
+*.gz
+*.zip
+
+# Prevent accidental manuscript artifacts
+*.docx
+*.pptx
+*.xlsx
