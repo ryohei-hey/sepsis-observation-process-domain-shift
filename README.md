@@ -43,7 +43,6 @@ This staging copy was prepared for public release. Notebook paths were converted
 See:
 
 - `PUBLICATION_CHECKLIST.md`
-- `docs/repository_prep_notes.md`
 
 ## Suggested citation
 
