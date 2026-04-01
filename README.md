@@ -38,7 +38,7 @@ Access to these databases requires appropriate credentialing and agreement with 
 
 ## Current status before public release
 
-This staging copy was prepared for public release, but some notebooks still contain local absolute paths from the original research environment. These paths should be replaced with relative paths or configuration-based paths before pushing to a public GitHub repository.
+This staging copy was prepared for public release. Notebook paths were converted to repository-relative paths for sharing, and local data files are excluded from version control.
 
 See:
 

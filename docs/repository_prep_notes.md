@@ -2,12 +2,9 @@
 
 ## Known cleanup items
 
-The following notebook files currently contain local absolute paths from the original working environment and should be edited before public release:
+The main shared analysis notebooks were updated to use repository-relative paths rather than local absolute paths.
 
-- `notebooks/analysis/01_data_preparation.ipynb`
-- `notebooks/analysis/03_delivation_and_external_validation.ipynb`
-
-These paths currently point to local directories under the original Dropbox workspace. They should be replaced with:
+For any future additions, paths should use:
 
 - relative paths inside this repository, or
 - a local configuration file based on `config/paths_template.yml`
@@ -15,7 +12,7 @@ These paths currently point to local directories under the original Dropbox work
 ## Recommended cleanup approach
 
 1. Move all local input and output path definitions to one configuration cell at the top of each notebook.
-2. Replace absolute paths with repository-relative paths.
+2. Use repository-relative paths or config-based paths instead of machine-specific paths.
 3. Remove notebook outputs that print local filesystem locations.
 4. Re-run only the minimum cells needed to confirm the notebooks still execute.
 
