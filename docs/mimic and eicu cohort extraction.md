@@ -52,9 +52,12 @@ The following sequential inclusion and exclusion criteria were applied:
 | 2 | First ICU admission with sepsis per patient | 33,311 | 10,394 |
 | 3 | Age ≥ 18 years | 33,311 | 0 |
 | 4 | ICU length of stay ≥ 24 hours | 30,218 | 3,093 |
+| 5 | At least one clinical observation recorded in the extraction window | 30,218 | 0 |
 | **Final cohort** | | **30,218** | |
 
 Note: No patients were excluded for age < 18 because MIMIC-IV v3.1 contains only adult ICU patients by design (neonatal and pediatric data were removed from MIMIC-IV v2.2 onward).
+
+Note: Step 5 excluded no MIMIC-IV stays. Every stay meeting the LOS criterion had at least one vital-sign, laboratory, or blood-gas measurement in the extraction window. The step is listed for symmetry with the eICU-CRD cohort, where it does remove stays (S3.2).
 
 ICU length of stay was determined using the precomputed `los` field in the `icustays` table (stored in days, converted to hours). Patients with LOS < 24 hours (i.e., < 1.0 day) were excluded. A comparison with timestamp-based LOS calculation (DATETIME_DIFF of outtime and intime) confirmed high concordance, with 208 discordant cases attributable to sub-hour rounding differences near the 24-hour boundary.
 
@@ -67,10 +70,15 @@ The same sequential criteria were applied:
 | 1 | All ICU stays meeting Sepsis-3 criteria | 43,572 | — |
 | 2 | First ICU admission with sepsis per patient | 36,758 | 6,814 |
 | 3 | Age ≥ 18 years | 36,725 | 33 |
-| 4 | ICU length of stay ≥ 24 hours | 31,413 | 5,312 |
-| **Final cohort** | | **31,413** | |
+| 4 | ICU length of stay ≥ 24 hours | 31,410 | 5,315 |
+| 5 | At least one clinical observation recorded in the extraction window | 31,403 | 7 |
+| **Final cohort** | | **31,403** | |
 
 ICU length of stay in the eICU-CRD was calculated from the `unitdischargeoffset` field (in minutes), converted to hours.
+
+Note on step 5: seven ICU stays (`patientunitstayid` 168071, 623669, 960238, 963674, 969926, 971030, 977284) met all preceding criteria but had no vital-sign, laboratory, or blood-gas measurement recorded in the extraction window. They carry static fields only (age, sex, APACHE III score, discharge status) and yield no physiologic features when the long-format extraction is pivoted to the analysis matrix, so they are excluded. The external validation cohort used throughout the manuscript is therefore 31,403.
+
+Note on step 4: an earlier run of `05_eicu_sepsis3_cohort_selection.ipynb` printed 31,413 remaining and 5,312 excluded at this step, and that figure propagated into an earlier version of the participant flow diagram. The values above (31,410 / 5,315) are the ones that match both the cohort table actually used and the extracted dataset (`eicu_sepsis3_apache3_with_vitals`, 31,410 unique `patientunitstayid`), and they have been confirmed by an independent re-run of the selection query. The three-stay difference is attributable to tie-breaking in the `ROW_NUMBER() OVER (PARTITION BY uniquepid ORDER BY hospitaladmitoffset, unitvisitnumber)` window function used to pick each patient's first sepsis stay: where a patient has two stays tied on both ordering keys, the stay selected is arbitrary, and the two stays may fall on opposite sides of the 24-hour threshold. The candidate count entering step 4 (36,725) is unaffected.
 
 ## S4. Clinical Variable Extraction
 
