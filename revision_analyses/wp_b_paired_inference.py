@@ -5,10 +5,13 @@ WP-G: Prevalence-adjusted AUPRC                     [R4C4]
 Consumes cache/primary_predictions.pkl.
 
 WP-B: For the count effect within each physiologic strategy (Model 3-2 latest,
-5-4 min/max, 7-6 diff), reports the paired difference-in-differences of ΔAUROC
-and ΔAUPRC (Δ = external - internal) with bootstrap 95% CI and two-sided p-value,
-using COMMON resample indices across the paired models. Also reports the external
-calibration-slope difference for each pair. Prespecified two-sided alpha = 0.05.
+5-4 min/max, 7-6 diff), reports the paired difference-in-differences of ΔAUROC,
+ΔAUPRC and the calibration slope (Δ = external - internal) with bootstrap 95% CI
+and two-sided p-value, using COMMON resample indices across the paired models.
+The calibration slope is reported BOTH as a difference-in-differences (so that it
+answers R3C3 in the same currency as the discrimination metrics) and as the
+external-cohort-only contrast (which is what Table 2 of the manuscript displays).
+Prespecified two-sided alpha = 0.05.
 
 WP-G: States AUPRC's prevalence dependence and reports a prevalence-adjusted
 comparison (normalized AUPRC = (AUPRC - prev)/(1 - prev)) plus an
@@ -54,8 +57,12 @@ def did_table(C):
                 yi, ye, pAi, pAe, pBi, pBe, roc_auc_score, n_boot=N_BOOT)
             d_auprc, lo2, hi2, p2 = rh.bootstrap_did_ci(
                 yi, ye, pAi, pAe, pBi, pBe, average_precision_score, n_boot=N_BOOT)
-            d_slope, lo3, hi3, p3 = rh.bootstrap_ext_diff_ci(
-                ye, pAe, pBe, rh.calibration_slope_unpenalized, n_boot=1000)  # calibration bootstrap
+            # calibration slope: DiD (external - internal, paired) ...
+            d_slope_did, lo3, hi3, p3 = rh.bootstrap_did_ci(
+                yi, ye, pAi, pAe, pBi, pBe, rh.calibration_slope_unpenalized, n_boot=N_BOOT)
+            # ... and the external-cohort-only contrast (matches manuscript Table 2)
+            d_slope_ext, lo4, hi4, p4 = rh.bootstrap_ext_diff_ci(
+                ye, pAe, pBe, rh.calibration_slope_unpenalized, n_boot=N_BOOT)
 
             rows.append({
                 "Algorithm": algo_name,
@@ -64,11 +71,15 @@ def did_table(C):
                 "p (AUROC)": pfmt(p1),
                 "DiD ΔAUPRC (95% CI)": f"{d_auprc:+.3f} ({lo2:+.3f}, {hi2:+.3f})",
                 "p (AUPRC)": pfmt(p2),
-                "Δ ext calib slope (95% CI)": f"{d_slope:+.3f} ({lo3:+.3f}, {hi3:+.3f})",
-                "p (slope)": pfmt(p3),
+                "DiD calib slope (95% CI)": f"{d_slope_did:+.3f} ({lo3:+.3f}, {hi3:+.3f})",
+                "p (slope DiD)": pfmt(p3),
+                "Δ ext calib slope (95% CI)": f"{d_slope_ext:+.3f} ({lo4:+.3f}, {hi4:+.3f})",
+                "p (slope ext)": pfmt(p4),
             })
             print(f"  {algo_name:20s} {B}-{A}: DiD ΔAUROC={d_auroc:+.3f} (p={pfmt(p1)}), "
-                  f"DiD ΔAUPRC={d_auprc:+.3f} (p={pfmt(p2)})")
+                  f"DiD ΔAUPRC={d_auprc:+.3f} (p={pfmt(p2)}), "
+                  f"DiD slope={d_slope_did:+.3f} (p={pfmt(p3)}), "
+                  f"ext slope diff={d_slope_ext:+.3f} (p={pfmt(p4)})")
     return pd.DataFrame(rows)
 
 
@@ -128,8 +139,13 @@ def main():
                 f"bootstrap using common resample indices across the two models (B = {N_BOOT}).\n")
         f.write(f"3. Two-sided bootstrap p-values; prespecified α = {ALPHA}. A negative DiD ΔAUROC/ΔAUPRC indicates "
                 "that adding counts produces a LARGER external degradation.\n")
-        f.write("4. Δ ext calib slope = external calibration slope(with count) − slope(without count), "
-                "paired bootstrap on the external cohort.\n")
+        f.write("4. DiD calib slope = Δslope(with count) − Δslope(without count), with Δslope = external slope − "
+                "internal slope; same paired-bootstrap construction as the discrimination DiDs. A negative value "
+                "indicates that adding counts produces a LARGER internal-to-external drop in the calibration slope.\n")
+        f.write("5. Δ ext calib slope = external calibration slope(with count) − slope(without count); an "
+                "external-cohort-only contrast (NOT a difference-in-differences), reported because the manuscript "
+                "table displays external calibration slopes. Paired bootstrap resampling the external cohort only.\n")
+        f.write("6. All calibration slopes estimated by unpenalized maximum likelihood.\n")
 
     print("\nWP-G: prevalence-adjusted AUPRC ...")
     df_prev, meta = prevalence_analysis(C)

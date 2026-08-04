@@ -17,8 +17,18 @@ RS = 42
 N_BOOT = 2000
 
 
-def make_lr(num, cat, imputer="iterative"):
-    """LR pipeline. imputer in {'iterative','median',None}. None = pre-imputed (scaler only)."""
+def make_lr(num, cat, imputer="iterative", cat_impute=None):
+    """LR pipeline. imputer in {'iterative','median',None}. None = pre-imputed (scaler only).
+
+    cat_impute controls the most_frequent imputation step in front of the one-hot
+    encoder. Default None means auto: skipped when imputer is None, used otherwise,
+    so that the pipeline matches repro.create_pipeline_no_impute (Models 6-7, which
+    run on pre-imputed diff frames) and repro.create_pipeline (all other models)
+    respectively. Passing the categorical imputer where the primary omits it shifts
+    ΔAUROC for Models 6-7 by a few thousandths.
+    """
+    if cat_impute is None:
+        cat_impute = imputer is not None
     if imputer is None:
         num_pipe = Pipeline([('scaler', StandardScaler())])
     elif imputer == "iterative":
@@ -31,15 +41,16 @@ def make_lr(num, cat, imputer="iterative"):
         raise ValueError(imputer)
     transformers = [('num', num_pipe, num)]
     if cat:
-        transformers.append(('cat', Pipeline([('imputer', SimpleImputer(strategy='most_frequent')),
-                                               ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))]), cat))
+        cat_steps = [('imputer', SimpleImputer(strategy='most_frequent'))] if cat_impute else []
+        cat_steps.append(('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False)))
+        transformers.append(('cat', Pipeline(cat_steps), cat))
     pre = ColumnTransformer(transformers, remainder='drop')
     return Pipeline([('preprocessor', pre),
                      ('classifier', LogisticRegression(max_iter=1000, random_state=RS))])
 
 
-def fit_predict_lr(Xtr, ytr, Xte, Xex, num, cat, imputer="iterative"):
-    pipe = make_lr(num, cat, imputer)
+def fit_predict_lr(Xtr, ytr, Xte, Xex, num, cat, imputer="iterative", cat_impute=None):
+    pipe = make_lr(num, cat, imputer, cat_impute)
     pipe.fit(Xtr[num + cat], ytr)
     return (pipe.predict_proba(Xte[num + cat])[:, 1],
             pipe.predict_proba(Xex[num + cat])[:, 1])

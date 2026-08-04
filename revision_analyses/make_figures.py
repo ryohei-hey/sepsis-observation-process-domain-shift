@@ -83,16 +83,19 @@ def fig_did():
     rows = parse_md_table(OUTD / "outputs_for_paired_inference" / "STable_paired_DiD.md")
     au_col = [c for c in rows[0] if "DiD ΔAUROC" in c][0]
     ap_col = [c for c in rows[0] if "DiD ΔAUPRC" in c][0]
-    labels, au, ap, colors = [], [], [], []
+    sl_col = [c for c in rows[0] if "DiD calib slope" in c][0]
+    labels, au, ap, sl, colors = [], [], [], [], []
     for r in rows:
         algo = "LR" if r["Algorithm"].startswith("Log") else "XGB"
         pair = r["Count contrast"].split("[")[0].strip().replace("Model ", "M")
         labels.append(f"{algo}: {pair}")
-        au.append(pt_ci(r[au_col])); ap.append(pt_ci(r[ap_col]))
+        au.append(pt_ci(r[au_col])); ap.append(pt_ci(r[ap_col])); sl.append(pt_ci(r[sl_col]))
         colors.append(LR_C if algo == "LR" else XGB_C)
     y = np.arange(len(labels))[::-1]
-    fig, ax = plt.subplots(1, 2, figsize=(11, 4.6), sharey=True)
-    for j, (dat, ttl) in enumerate([(au, "(a) DiD ΔAUROC"), (ap, "(b) DiD ΔAUPRC")]):
+    fig, ax = plt.subplots(1, 3, figsize=(15, 4.6), sharey=True)
+    panels = [(au, "(a) DiD ΔAUROC"), (ap, "(b) DiD ΔAUPRC"),
+              (sl, "(c) DiD calibration slope")]
+    for j, (dat, ttl) in enumerate(panels):
         for yi, (p, lo, hi), c in zip(y, dat, colors):
             ax[j].plot([lo, hi], [yi, yi], color=c, lw=2)
             ax[j].plot(p, yi, "o", color=c, ms=6)
