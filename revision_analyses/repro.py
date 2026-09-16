@@ -2,7 +2,7 @@
 repro.py
 ========
 Faithful reproduction of the primary modeling pipeline of
-`manuscripts/Submit/code_repository/notebooks/analysis/03_delivation_and_external_validation.ipynb`,
+`notebooks/analysis/03_derivation_and_external_validation.ipynb`,
 built from the saved wide parquet frames (so the 1.5 GB long pickle is never loaded).
 
 Reproduces EXACTLY (same RANDOM_STATE=42):
