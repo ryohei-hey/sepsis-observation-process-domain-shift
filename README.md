@@ -12,7 +12,7 @@ This repository contains the cohort-extraction notebooks, analysis notebooks, an
 
 - `notebooks/cohort_extraction/`: cohort construction notebooks for MIMIC-IV and eICU-CRD
 - `notebooks/analysis/`: analysis, validation, and table-generation notebooks
-- `revision_analyses/`: scripts for the secondary and sensitivity analyses added during peer review (calibration correction, paired difference-in-differences, placebo-count control, count re-encoding, common preprocessing, FiO2 exclusion, subgroup calibration, reverse/bidirectional validation, era-restricted sensitivity)
+- `revision_analyses/`: scripts for the secondary and sensitivity analyses added during peer review (calibration correction, paired difference-in-differences, placebo-count control, count re-encoding, common preprocessing, FiO2 exclusion, subgroup calibration, reverse/bidirectional validation, era-restricted sensitivity, ablation-ladder rungs, within-database comparison of locally developed and transported models, internal calibration slope, and the XGBoost hyperparameter and regeneration check); `ANALYSIS_PLAN.md` lists each with the reviewer comment that prompted it
 - `ANALYSIS_PLAN.md`: prespecified primary analysis and the peer-review additions, with the script that implements each
 - `docs/`: supplementary workflow notes and publication prep notes
 - `config/`: local path templates for users running the code in their own environment

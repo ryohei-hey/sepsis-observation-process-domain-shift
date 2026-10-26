@@ -73,7 +73,7 @@ def fig_calibration():
     ax[1].set_xticks(x); ax[1].set_xticklabels(MLAB, fontsize=8)
     ax[1].set_ylabel("True CITL (offset model)")
     ax[1].set_title("(b) True calibration-in-the-large"); ax[1].legend(frameon=False, fontsize=8)
-    fig.suptitle("External calibration across specifications (corrected metrics)", y=1.02, fontsize=11)
+    # no figure-level title: the letter caption carries it (avoids duplicated/stale text in the image)
     fig.savefig(FIGD / "FigR1_calibration.png"); plt.close(fig)
     print("FigR1_calibration.png")
 
@@ -102,8 +102,7 @@ def fig_did():
         ax[j].axvline(0, color=GREY, ls="--", lw=1)
         ax[j].set_title(ttl); ax[j].set_xlabel("Difference-in-differences (external − internal)")
     ax[0].set_yticks(y); ax[0].set_yticklabels(labels, fontsize=8)
-    fig.suptitle("Incremental effect of measurement counts (paired difference-in-differences)\n"
-                 "negative = counts add extra external degradation", y=1.06, fontsize=10)
+    # no figure-level title: the letter caption carries it
     fig.savefig(FIGD / "FigR2_DiD_forest.png"); plt.close(fig)
     print("FigR2_DiD_forest.png")
 
@@ -125,7 +124,7 @@ def fig_placebo():
     ax.axhline(0, color=GREY, lw=0.8)
     ax.set_xticks(x); ax.set_xticklabels(strat)
     ax.set_ylabel("ΔAUROC (external − internal)")
-    ax.set_title("Placebo-count control: genuine counts vs equal-dimension\npermuted / noise blocks (logistic regression)", fontsize=10)
+    # no title: the letter caption carries it
     ax.legend(frameon=False, fontsize=8, ncol=2)
     fig.savefig(FIGD / "FigR3_placebo.png"); plt.close(fig)
     print("FigR3_placebo.png")
@@ -151,7 +150,7 @@ def fig_reverse():
     ax.scatter([], [], color=LR_C, label="Logistic regression")
     ax.scatter([], [], color=XGB_C, label="XGBoost")
     ax.legend(frameon=False, fontsize=8, loc="upper left")
-    ax.set_title("Forward vs reverse domain shift\nSpearman r = −0.69 (p = 0.006)", fontsize=10)
+    # no title: the caption carries the Spearman r and p (hard-coding them here went stale after re-analysis)
     fig.savefig(FIGD / "FigR4_forward_vs_reverse.png"); plt.close(fig)
     print("FigR4_forward_vs_reverse.png")
 
@@ -172,8 +171,7 @@ def fig_subgroup():
     ax.axhline(1.0, color=GREY, ls="--", lw=1, label="Ideal = 1")
     ax.set_xticks(x); ax.set_xticklabels(races)
     ax.set_ylabel("External calibration slope"); ax.set_ylim(0, 1.15)
-    ax.set_title("Subgroup calibration slope by race/ethnicity (external, LR)\n"
-                 "count-augmented Model 3 collapses across all groups", fontsize=10)
+    # no title: the letter caption carries it
     ax.legend(frameon=False, fontsize=8, ncol=2)
     fig.savefig(FIGD / "FigR5_subgroup_calibration.png"); plt.close(fig)
     print("FigR5_subgroup_calibration.png")
@@ -194,7 +192,7 @@ def fig_countassoc():
     ax.axvline(0, color=GREY, lw=0.8)
     ax.set_yticks(y); ax.set_yticklabels(feats, fontsize=8)
     ax.set_xlabel("Point-biserial corr(count, mortality)")
-    ax.set_title("Count–mortality association differs by database\n(same count, different predictive meaning)", fontsize=10)
+    # no title: the letter caption carries it
     ax.legend(frameon=False, fontsize=8)
     fig.savefig(FIGD / "FigR6_count_mortality.png"); plt.close(fig)
     print("FigR6_count_mortality.png")

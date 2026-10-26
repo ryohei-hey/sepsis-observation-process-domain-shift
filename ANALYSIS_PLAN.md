@@ -82,6 +82,12 @@ Each item names the reviewer comment that prompted it. Scripts are in `revision_
 | B9 | Reverse and bidirectional validation (development in eICU-CRD, validation in MIMIC-IV) | R3 Major 5, R4 Major 1 | `wp_i_reverse.py` |
 | B10 | Era-restricted sensitivity (MIMIC-IV development limited to the eICU-contemporaneous `anchor_year_group` bin) | R4 Major 1 | `wp_k_era_restricted.py` |
 | B11 | Counts of ICU stays excluded by the 24-hour criterion, with mortality among the excluded | R1 Comment 1, R3 Minor 12 | `sql/wp_j_*.sql` |
+| B12 | Ablation-ladder rungs on latest values without urine output, without the comorbidity category, without both, and with the 18 physiologic values alone | R3 Major 3 (second round) | `wp_c2_ladder_rung.py` |
+| B13 | Absolute internal and external AUROC in both directions (logistic regression) | R3 Major 5 (second round) | `wp_i2_reverse_absolute.py` |
+| B14 | Absolute reverse-direction AUROC for XGBoost, with a check that the rebuild reproduces the reported reverse values | R3 Major 3 (third round) | `wp_i3_reverse_absolute_xgb.py` |
+| B15 | Within each database, the locally developed model compared with the model transported from the other database | R3 Major 1 (third round) | `wp_i4_within_database.py` |
+| B16 | Internal calibration slope (Table 4) and the share of the first gradient step carried by urine output and the comorbidity category | R3 Minor 3, R3 Major 2 (third round) | `wp_o_internal_slope.py` |
+| B17 | Selected XGBoost hyperparameters, and a check that refitting the forward XGBoost search regenerates the cached predictions | R3 Major 3 (third round) | `wp_n_xgb_hyperparams.py` |
 
 ---
 
@@ -99,6 +105,19 @@ The correction is confined to FiO2-derived features. The cohorts (30,218 and 31,
 rates (16.3% and 13.9%), the 60/40 split (18,130 and 12,088), and the alveolar-arterial gradient
 (derived from blood-gas rather than chartevents data) are unchanged.
 
+## Code correction during revision
+
+During the first revision the encoding of a missing comorbidity category was changed: a missing
+comorbidity field denotes 'none of the listed comorbidities' (77% of the development set), so the
+missing level is kept as its own one-hot category rather than imputed to the most frequent category,
+as the Methods state. The results in the manuscript use this encoding, but releases up to v1.3.0
+did not carry it in `notebooks/analysis/03_derivation_and_external_validation.ipynb`,
+`revision_analyses/repro.py`, or `revision_analyses/refit_util.py`, so they reproduced the values
+from before the change for Models 2 to 5. v1.4.0 corrects all three. With the versions pinned in
+`requirements.txt`, refitting the forward XGBoost search reproduces the cached predictions exactly
+(`wp_n_xgb_hyperparams.py`); a different XGBoost or scikit-learn version can select different
+hyperparameters.
+
 ---
 
 ## Reproduction order
@@ -109,8 +128,10 @@ notebooks/cohort_extraction/   04 → 05 → 06   (eICU-CRD)
 notebooks/analysis/01_data_preparation.ipynb                  # long-format pickle
 notebooks/analysis/02_table1.ipynb                            # baseline table
 notebooks/analysis/03_derivation_and_external_validation.ipynb# wide parquet, primary results, figures
-revision_analyses/build_cache.py                              # cached predictions for B1–B3, B8
-revision_analyses/wp_*.py                                     # secondary analyses (any order)
+revision_analyses/build_cache.py                              # cached predictions for B1–B3, B8, B15–B17
+revision_analyses/wp_*.py                                     # secondary analyses; wp_i → wp_i2 → wp_i3 → wp_i4 in that order
+revision_analyses/wp_o_internal_slope.py                      # before make_table3_split.py
+revision_analyses/make_table3_split.py                        # Tables 3 and 4 from the notebook's domain-shift table
 revision_analyses/make_figures.py                             # response-letter figures
 ```
 

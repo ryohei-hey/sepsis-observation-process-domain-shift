@@ -33,7 +33,11 @@ RANDOM_STATE = 42
 
 # Resolve project root = two levels up from this file (revision/ -> project root)
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = PROJECT_ROOT / "outputs" / "outputs_data"
+# The analysis notebook writes the wide frames to output/outputs_data in the public
+# repository; the original project layout keeps them in outputs/outputs_data.
+DATA_DIR = next((d for d in (PROJECT_ROOT / "output" / "outputs_data", PROJECT_ROOT / "outputs" / "outputs_data")
+                 if (d / "df_mimic_wide_with_count.parquet").exists()),
+                PROJECT_ROOT / "output" / "outputs_data")
 
 # ---------------------------------------------------------------- feature sets
 vital_signs = ['hr', 'map', 'temp', 'rr', 'gcs']
@@ -95,8 +99,11 @@ def create_pipeline(num, cat, random_state=RANDOM_STATE):
                          ('scaler', StandardScaler())])
     transformers = [('num', num_pipe, num)]
     if cat:
-        transformers.append(('cat', Pipeline([('imputer', SimpleImputer(strategy='most_frequent')),
-                                               ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))]), cat))
+        # A missing comorbidity field denotes "none of the listed comorbidities" (77% of
+        # the development set), so the missing level is kept as its own one-hot category
+        # rather than imputed to the modal comorbidity. Matches create_pipeline_no_impute,
+        # so all seven specifications encode comorbidity identically.
+        transformers.append(('cat', Pipeline([('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))]), cat))
     pre = ColumnTransformer(transformers, remainder='drop')
     return Pipeline([('preprocessor', pre),
                      ('classifier', LogisticRegression(max_iter=1000, random_state=random_state))])
@@ -246,10 +253,8 @@ def build(train_xgb=False, verbose=True, fit_primary=True, dev_source='mimic', m
                 nt = StandardScaler()
             transformers = [('num', nt, num)]
             if cat:
-                transformers.append(('cat', OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore'), cat)
-                                     if not impute else
-                                     ('cat', Pipeline([('imputer', SimpleImputer(strategy='most_frequent')),
-                                                       ('onehot', OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore'))]), cat))
+                # Missing comorbidity retained as its own level; see create_pipeline.
+                transformers.append(('cat', OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore'), cat))
             pre = ColumnTransformer(transformers)
             return Pipeline([('preprocessor', pre),
                              ('classifier', XGBClassifier(random_state=RANDOM_STATE, eval_metric='logloss', n_jobs=-1))])
@@ -268,6 +273,7 @@ def build(train_xgb=False, verbose=True, fit_primary=True, dev_source='mimic', m
         cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
         S.xgb_pipelines = {}
         S.xgb_predictions = {}
+        S.xgb_search = {}
         for mk in S.features:
             num, cat = S.features[mk]
             Xtr, Xte, Xex = data_for(mk)
@@ -277,6 +283,7 @@ def build(train_xgb=False, verbose=True, fit_primary=True, dev_source='mimic', m
             search.fit(Xtr, y_train)
             est = search.best_estimator_
             S.xgb_pipelines[mk] = est
+            S.xgb_search[mk] = {'best_params': search.best_params_, 'best_cv_auroc': search.best_score_}
             S.xgb_predictions[mk] = {
                 'train': est.predict_proba(Xtr)[:, 1],
                 'test': est.predict_proba(Xte)[:, 1],

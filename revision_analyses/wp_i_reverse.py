@@ -94,9 +94,10 @@ def main():
         f.write(f"\n\n1. Forward: MIMIC-IV → eICU-CRD. Reverse: eICU-CRD → MIMIC-IV. Δ = external − internal.\n")
         f.write(f"2. Spearman correlation between forward and reverse ΔAUROC across all 14 model×algorithm "
                 f"specifications: r = {rho:.3f} (p = {pval:.4f}).\n")
-        f.write("3. The count-driven and variability-driven degradation seen forward is largely absent reverse "
-                "(near-zero reverse Δ), consistent with site-specific observation-process behavior at the "
-                "single-center MIMIC development source that fails to transport to the 208-hospital eICU.\n")
+        f.write("3. Each ΔAUROC also reflects how well the population can be discriminated, which differs "
+                "between the databases and enters the two directions with opposite signs, so forward versus reverse "
+                "Δ is not the cost of transport. Compare the locally developed and transported models on the same "
+                "database instead (wp_i4_within_database.py).\n")
 
     print(f"\nSpearman(forward, reverse ΔAUROC) r = {rho:.3f}, p = {pval:.4f}")
     print(f"Written -> {OUT}")
