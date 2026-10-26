@@ -21,14 +21,14 @@ def make_lr(num, cat, imputer="iterative", cat_impute=None):
     """LR pipeline. imputer in {'iterative','median',None}. None = pre-imputed (scaler only).
 
     cat_impute controls the most_frequent imputation step in front of the one-hot
-    encoder. Default None means auto: skipped when imputer is None, used otherwise,
-    so that the pipeline matches repro.create_pipeline_no_impute (Models 6-7, which
-    run on pre-imputed diff frames) and repro.create_pipeline (all other models)
-    respectively. Passing the categorical imputer where the primary omits it shifts
-    ΔAUROC for Models 6-7 by a few thousandths.
+    encoder. It defaults to False, matching the primary pipelines in repro.py: a
+    missing comorbidity field denotes "none of the listed comorbidities" (77% of the
+    development set), so the missing level is kept as its own one-hot category in
+    every specification rather than imputed to the modal comorbidity. Set it to True
+    only to reproduce the pre-correction behaviour.
     """
     if cat_impute is None:
-        cat_impute = imputer is not None
+        cat_impute = False
     if imputer is None:
         num_pipe = Pipeline([('scaler', StandardScaler())])
     elif imputer == "iterative":

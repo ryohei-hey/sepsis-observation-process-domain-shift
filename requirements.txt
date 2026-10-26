@@ -18,6 +18,7 @@ seaborn==0.13.2
 # --- tables and reporting
 python-docx==1.2.0
 tableone==0.9.6
+tabulate==0.10.0             # DataFrame.to_markdown in revision_analyses/
 
 # --- data access (cohort extraction only; requires PhysioNet credentialing)
 google-cloud-bigquery==3.42.2
